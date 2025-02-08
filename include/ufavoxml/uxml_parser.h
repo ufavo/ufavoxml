@@ -53,7 +53,6 @@ enum {
 typedef size_t 	(*uxml_data_func)(void *usrdata, const char **data_out);
  /* the callee must return UXML_OK or UXML_ABORT. */
 typedef int 	(*uxml_tag_func)(void *usrdata, const char *name, size_t name_length);
-//typedef int 	(*uxml_tag_attribute_func)(void *usrdata, const char *name, size_t name_length, const char *value, size_t value_length);
 
 typedef struct uxml_parser {
 	/* callbacks */

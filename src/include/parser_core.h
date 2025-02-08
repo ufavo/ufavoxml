@@ -50,9 +50,8 @@ static inline char
 parser_skip_whitespace(uxml_parser_t *restrict ctx)
 {
 	char c;
-	/* assuming all characters <= ' ' as whitespace */
+	/* treat all characters <= ' ' the same as a whitespace */
 	for (c = parser_char_current(ctx); c <= ' ' && c; c = parser_char_next(ctx));
-	//for (c = parser_char_current(ctx); c == ' ' || c == '\t' || c == '\r' || c == '\n'; c = parser_char_next(ctx));
 	return c;
 }
 
@@ -267,9 +266,7 @@ parser_parse_xml_attribute_value(uxml_parser_t *restrict ctx)
 {
 	int err = UXML_OK;
 	size_t len = 0;
-//	uint16_t xml_entity;
-//	uint_fast8_t utf8_entities = 0;
-	char c;//, utf8_entity_buf[4];
+	char c;
 	char quotechar;
 	
 
@@ -288,24 +285,7 @@ parser_parse_xml_attribute_value(uxml_parser_t *restrict ctx)
 	c = parser_char_next(ctx);
 	do {
 		if (c == quotechar) break;
-//		if (c == '\\') {
-//			c = parser_char_next(ctx);
-//			if (!c) return UXML_ERROR_EOF;
-//				if (!(c == '\\' || c == quotechar))
-//					return UXML_ERROR_UNKNOWN_ESCAPE_SEQUENCE;
 		if (c == '&') {
-			/*
-			xml_entity = parser_char_current_resolve_xml_entity(ctx);
-			if (xml_entity == 0) return UXML_ERROR_UNKNOWN_XML_ENTITY;
-			/ decode utf-16 entity /
-			utf8_entities = utf16_to_utf8(&xml_entity, 1, (utf8_t *)utf8_entity_buf, sizeof(utf8_entity_buf));
-			do {
-				c = utf8_entity_buf[sizeof(utf8_entity_buf) - utf8_entities - 1];
-				utf8_entities--;
-				err = parser_buf_entry_append(ctx, c);
-				if (err != UXML_OK)
-					return err;
-			} while (utf8_entities > 0);*/
 			switch(parser_buf_entry_append_resolved_entity_with_callback(ctx, &len, ctx->tag_attribute_value_func)) {
 				case UXML_ERROR_UNKNOWN_XML_ENTITY:
 					return UXML_ERROR_UNKNOWN_XML_ENTITY;
@@ -316,7 +296,6 @@ parser_parse_xml_attribute_value(uxml_parser_t *restrict ctx)
 			continue;
 		}
 		err = parser_buf_entry_append_with_callback(ctx, c, &len, ctx->tag_attribute_value_func);
-//			err = parser_buf_entry_append(ctx, c);
 		if (err != UXML_OK)
 			return err;
 
@@ -340,23 +319,7 @@ parser_parse_xml_attribute_value(uxml_parser_t *restrict ctx)
 static inline int
 parser_parse_prolog(uxml_parser_t *restrict ctx)
 {
-//	for (c = parser_char_current(ctx);c != '';);
-
 	for (; !parser_match_exactly(ctx, "?>"); parser_char_next(ctx));
-/*
-	if (!parser_match_allow_whitespace(ctx, "<?")) return UXML_ERROR_INPUT;
-
-	parser_skip_whitespace(ctx);
-	
-	if (parser_match_exactly(ctx, "version")) {
-		if (!parser_match_allow_whitespace(ctx, "=")) return UXML_ERROR_INPUT;
-		c = parser_skip_whitespace(ctx);
-		if (c != '"' && c != '\'')
-			return UXML_ERROR_INPUT;
-
-	}
-
-	if (!parser_match_allow_whitespace(ctx, "?>")) return UXML_ERROR_INPUT;*/
 	return UXML_OK;
 }
 
@@ -366,9 +329,8 @@ parser_parse_tag_value(uxml_parser_t *restrict ctx)
 {
 	int 			err = UXML_OK;
 	size_t 			len;
-	uint_fast8_t 	comment_skip = 0;//, utf8_entities = 0;
-//	uint16_t 		xml_entity;
-	char 			c;//, utf8_entity_buf[4];
+	uint_fast8_t 	comment_skip = 0;
+	char 			c;
 
 	/* attempt to skip comments */
 	for (;parser_skip_comment(ctx););
@@ -383,27 +345,6 @@ parser_parse_tag_value(uxml_parser_t *restrict ctx)
 		while (c != '<') {
 			if (c == '\0') return UXML_ERROR_EOF;
 			if (c == '&') {
-				/* resolve xml entity into utf-16 /
-				xml_entity = parser_char_current_resolve_xml_entity(ctx);
-				if (xml_entity == 0) return UXML_ERROR_UNKNOWN_XML_ENTITY;
-				/ decode utf-16 entity /
-				utf8_entities = utf16_to_utf8(&xml_entity, 1, (utf8_t *)utf8_entity_buf, sizeof(utf8_entity_buf));
-				do {
-					c = utf8_entity_buf[sizeof(utf8_entity_buf) - utf8_entities - 1];
-					utf8_entities--;
-					if (parser_buf_entry_append(ctx, c) == UXML_ERROR_OUT_OF_MEMORY) {
-						if (len == 0) return UXML_ERROR_OUT_OF_MEMORY;
-						
-						/ notify the user /
-						ctx->tag_value_func(ctx->usrdata, ctx->buf + ctx->buf_last_entry_idx, len);
-
-						parser_buf_entry_remove_last(ctx, len);
-						len = 0;
-						parser_buf_entry_append(ctx, c);
-					}
-					len++;
-				} while (utf8_entities > 0);*/
-
 				err = parser_buf_entry_append_resolved_entity_with_callback(ctx, &len, ctx->tag_value_func);
 				if (err != UXML_OK)
 					return err;
@@ -411,16 +352,6 @@ parser_parse_tag_value(uxml_parser_t *restrict ctx)
 				c = parser_char_next(ctx);
 				continue;	
 			}
-/*			if (parser_buf_entry_append(ctx, c) == UXML_ERROR_OUT_OF_MEMORY) {
-				if (len == 0) return UXML_ERROR_OUT_OF_MEMORY;
-
-				/ notify the user /
-				ctx->tag_value_func(ctx->usrdata, ctx->buf + ctx->buf_last_entry_idx, len);
-				
-				parser_buf_entry_remove_last(ctx, len);
-				len = 0;
-				parser_buf_entry_append(ctx, c);
-			}*/
 			err = parser_buf_entry_append_with_callback(ctx, c, &len, ctx->tag_value_func);
 			if (err != UXML_OK)
 				return err;
@@ -526,18 +457,8 @@ parser_parse_tag(uxml_parser_t *restrict ctx, const char *restrict parent_tag_na
 		err = parser_parse_xml_attribute_value(ctx);
 		if (err != UXML_OK) return err;
 
-//		attribute_value = parser_buf_last_entry(ctx, &attribute_value_length);
-//		if (attribute_value_length == 0)
-//			attribute_value = NULL;
-
-		/* notify the user */
-//		ctx->tag_attribute_func(ctx->usrdata, attribute_name, attribute_name_length, attribute_value, attribute_value_length);
-
 		if (parser_skip_whitespace(ctx) == '\0')
 			return UXML_ERROR_EOF;
-
-		/* remove entries */
-//		parser_buf_entry_remove_last(ctx, attribute_value_length);
 	}
 	if (err == UXML_ERROR_OUT_OF_MEMORY)
 		return err;
@@ -587,8 +508,6 @@ tag_closed:
 	if (parent_tag_name_length == 0)
 		return UXML_OK;
 	
-//	if (parser_skip_any_whitespace_or_comment(ctx) == '\0')
-//		return ctx->buf_len > 0? UXML_ERROR_INPUT : UXML_OK;
 	if (parser_skip_any_whitespace_or_comment(ctx) == '\0')
 		return UXML_ERROR_EOF;
 
@@ -641,9 +560,6 @@ UXML_IMPL_FUNC(parse)(uxml_parser_t *restrict ctx, int prolog)
 		if (parser_skip_any_whitespace_or_comment(ctx) == '\0')
 			return UXML_ERROR_EOF;
 	}
-
-//	if (!parser_match_allow_whitespace(ctx, "<"))
-//		return UXML_ERROR_INPUT;
 
 	/* parse the root element */
 	err = parser_parse_tag(ctx, NULL, 0);
