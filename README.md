@@ -53,7 +53,7 @@ make -j4
 
 ## Usage
 
-See [`test/example.c`](/test/example.c).
+See [`tests/example.c`](/tests/example.c).
 To compile and run the example, after building the lib:
 ```sh
 cd test 
