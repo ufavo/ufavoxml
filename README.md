@@ -1,5 +1,5 @@
 # UfavoXML
-UfavoXML is a callback based XML parser library written in C99. This library aims at speed, low memory footprint and .
+UfavoXML is a callback based XML parser library written in C99.
 
 ## Features
 - Can read from a data stream (a callback function is called whenever more data is required);
