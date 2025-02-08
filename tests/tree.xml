@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tree>
+	<attributes>
+		<height>15</height> <!-- Height in meters -->
+		<age>30</age> <!-- Age in years -->
+		<type>Oak</type> <!-- Type of tree -->
+		<position x="678.91" y="123.45" z="55.2"/>
+		<rotation w="-0.731" x="-0.002" y="-0.647" z="0.216"/>
+	</attributes>
+	<branches>
+		<branch id="1">
+			<length>3.5</length> <!-- Length in meters -->
+			<angle>45</angle> <!-- Angle from trunk in degrees -->
+			<leaves>
+				<leaf color="green" size="medium"/>
+				<leaf color="green" size="medium"/>
+				<leaf color="green" size="medium"/>
+			</leaves>
+		</branch>
+		<branch id="2">
+			<length>2.8</length>
+			<angle>60</angle>
+			<leaves>
+				<leaf color="green" size="large"/>
+				<leaf color="green" size="large"/>
+			</leaves>
+		</branch>
+		<branch id="3">
+			<length>4.0</length>
+			<angle>30</angle>
+			<leaves>
+				<leaf color="green" size="small"/>
+				<leaf color="green" size="small"/>
+				<leaf color="green" size="small"/>
+				<leaf color="green" size="small"/>
+			</leaves>
+		</branch>
+	</branches>
+	<roots>
+		<root id="1">
+			<depth>2</depth> <!-- Depth in meters -->
+			<width>1.5</width> <!-- Width in meters -->
+		</root>
+	</roots>
+</tree>

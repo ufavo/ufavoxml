@@ -1,0 +1,3 @@
+[submodule "utf8-utf16-converter"]
+	path = utf8-utf16-converter
+	url = https://github.com/ufavo/utf8-utf16-converter.git
