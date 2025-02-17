@@ -56,7 +56,7 @@ make -j4
 See [`tests/example.c`](/tests/example.c).
 To compile and run the example, after building the lib:
 ```sh
-cd test 
+cd tests
 gcc example.c ../libufavoxml.a -o example 
 ./example
 ```

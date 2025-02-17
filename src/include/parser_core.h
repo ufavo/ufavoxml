@@ -181,19 +181,17 @@ parser_buf_entry_append_resolved_entity_with_callback(uxml_parser_t *restrict ct
 {
 	uint_fast8_t err = UXML_OK;
 	uint16_t xml_entity;
-	uint_fast8_t utf8_entities = 0;
-	char c, utf8_entity_buf[4];
+	uint_fast8_t utf8_entities = 0, idx = 0;
+	char utf8_entity_buf[4];
 	xml_entity = parser_char_current_resolve_xml_entity(ctx);
 	if (xml_entity == 0) return UXML_ERROR_UNKNOWN_XML_ENTITY;
 	/* decode utf-16 entity */
 	utf8_entities = utf16_to_utf8(&xml_entity, 1, (utf8_t *)utf8_entity_buf, sizeof(utf8_entity_buf));
 	do {
-		c = utf8_entity_buf[sizeof(utf8_entity_buf) - utf8_entities - 1];
-		utf8_entities--;
-		if (parser_buf_entry_append_with_callback(ctx, c, len, callback) == UXML_ERROR_OUT_OF_MEMORY)
+		if (parser_buf_entry_append_with_callback(ctx, utf8_entity_buf[idx++], len, callback) == UXML_ERROR_OUT_OF_MEMORY)
 			return UXML_ERROR_OUT_OF_MEMORY;
 		*len+=1;
-	} while (utf8_entities > 0);
+	} while (idx < utf8_entities);
 	return err;
 }
 
