@@ -39,34 +39,34 @@ data_cb_stream(void *usrdata, const char **data_out)
 }
 
 int
-tag_open_cb(void *usrdata, const char *tag_name, size_t tag_name_length)
+tag_open_cb(void *usrdata, char *tag_name, size_t tag_name_length)
 {
 	printf("TAG OPEN       [%.*s]\n", (int)tag_name_length, tag_name);
 	return UXML_OK;
 }
 
 int
-tag_close_cb(void *usrdata, const char *tag_name, size_t tag_name_length)
+tag_close_cb(void *usrdata, char *tag_name, size_t tag_name_length)
 {
 	printf("TAG CLOSE      [%.*s]\n", (int)tag_name_length, tag_name);
 	return UXML_OK;
 }
 
 int
-tag_value_cb(void *usrdata, const char *value, size_t value_length)
+tag_value_cb(void *usrdata, char *value, size_t value_length)
 {
 	printf("TAG VALUE      [%.*s]\n", (int)value_length, value);
 	return UXML_OK;
 }
 
 int
-tag_attribute_name_cb(void *usrdata, const char *attribute_name, size_t attribute_name_length)
+tag_attribute_name_cb(void *usrdata, char *attribute_name, size_t attribute_name_length)
 {
 	printf("TAG ATTR NAME  [%.*s]\n", (int)attribute_name_length, attribute_name);
 	return UXML_OK;
 }
 int
-tag_attribute_value_cb(void *usrdata, const char *attribute_value, size_t attribute_value_length)
+tag_attribute_value_cb(void *usrdata, char *attribute_value, size_t attribute_value_length)
 {
 	printf("TAG ATTR VALUE [%.*s]\n", (int)attribute_value_length, attribute_value);
 	return UXML_OK;
