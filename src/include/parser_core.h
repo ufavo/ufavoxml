@@ -173,6 +173,7 @@ parser_buf_entry_append_with_callback(uxml_parser_t *restrict ctx, const char c,
 		*len = 0;
 		parser_buf_entry_append(ctx, c);
 	}
+	*len += 1;
 	return UXML_OK;
 }
 
@@ -190,7 +191,6 @@ parser_buf_entry_append_resolved_entity_with_callback(uxml_parser_t *restrict ct
 	do {
 		if (parser_buf_entry_append_with_callback(ctx, utf8_entity_buf[idx++], len, callback) == UXML_ERROR_OUT_OF_MEMORY)
 			return UXML_ERROR_OUT_OF_MEMORY;
-		*len+=1;
 	} while (idx < utf8_entities);
 	return err;
 }
@@ -297,7 +297,6 @@ parser_parse_xml_attribute_value(uxml_parser_t *restrict ctx)
 		if (err != UXML_OK)
 			return err;
 
-		len++;
 		c = parser_char_next(ctx);
 	} while (c);
 
@@ -328,11 +327,14 @@ parser_parse_tag_value(uxml_parser_t *restrict ctx)
 	int 			err = UXML_OK;
 	size_t 			len;
 	uint_fast8_t 	comment_skip = 0;
-	char 			c;
+	char 			c, late_c;
 
-	/* attempt to skip comments */
-	for (;parser_skip_comment(ctx););
-	c = parser_char_current(ctx);
+	if (ctx->opt_tag_value__trim) {
+		c = parser_skip_any_whitespace_or_comment(ctx);
+	} else {
+		while (parser_skip_comment(ctx));
+		c = parser_char_current(ctx);
+	}
 	
 	if (c == '\0') return UXML_ERROR_EOF;
 	
@@ -340,21 +342,47 @@ parser_parse_tag_value(uxml_parser_t *restrict ctx)
 	parser_buf_entry_begin(ctx);
 
 	for (len = 0; ;) {
-		while (c != '<') {
-			if (c == '\0') return UXML_ERROR_EOF;
-			if (c == '&') {
-				err = parser_buf_entry_append_resolved_entity_with_callback(ctx, &len, ctx->tag_value_func);
-				if (err != UXML_OK)
-					return err;
-
-				c = parser_char_next(ctx);
-				continue;	
+		if (ctx->opt_tag_value__trim) {
+			/* trim and remove duplicated whitespaces */
+			for (late_c = 0; c != '<'; late_c = c, c = parser_char_next(ctx)) {
+				if (c == '\0') return UXML_ERROR_EOF;
+				if (c == '&') {
+					if (late_c) {
+						err = parser_buf_entry_append_with_callback(ctx, late_c, &len, ctx->tag_value_func);
+						if (err != UXML_OK) return err;
+					}
+					c = late_c = 0;
+					err = parser_buf_entry_append_resolved_entity_with_callback(ctx, &len, ctx->tag_value_func);
+					if (err != UXML_OK) return err;
+					continue;
+				}
+				/* treat control chars as whitespace */
+				if (c <= ' ') {
+					c = ' ';
+					if (late_c == c) continue;
+				}
+				if (late_c) {
+					err = parser_buf_entry_append_with_callback(ctx, late_c, &len, ctx->tag_value_func);
+					if (err != UXML_OK) return err;
+				}
 			}
-			err = parser_buf_entry_append_with_callback(ctx, c, &len, ctx->tag_value_func);
-			if (err != UXML_OK)
-				return err;
-			len++;
-			c = parser_char_next(ctx);
+			/* append last char */
+			if (late_c != ' ' && late_c) {
+				err = parser_buf_entry_append_with_callback(ctx, late_c, &len, ctx->tag_value_func);
+				if (err != UXML_OK) return err;
+			}
+		} else {
+			/* untrimmed implementation */
+			for (; c != '<'; c = parser_char_next(ctx)) {
+				if (c == '\0') return UXML_ERROR_EOF;
+				if (c == '&') {
+					err = parser_buf_entry_append_resolved_entity_with_callback(ctx, &len, ctx->tag_value_func);
+					if (err != UXML_OK) return err;
+					continue;
+				}
+				err = parser_buf_entry_append_with_callback(ctx, c, &len, ctx->tag_value_func);
+				if (err != UXML_OK) return err;
+			}
 		}
 
 		/* notify the user */
@@ -365,7 +393,7 @@ parser_parse_tag_value(uxml_parser_t *restrict ctx)
 			len = 0;
 		}
 		
-		/* check if it's a tag closing (this consumes the char '<' to test agains the next one '/' ) */
+		/* check if it's a tag closing (this consumes the char '<' to test against the next one '/' ) */
 		if (parser_match_allow_whitespace(ctx, "</")) {
 			ctx->parser_needs_decoded_char = 0;
 			return PARSER_IS_CLOSE_TAG;
@@ -380,9 +408,13 @@ parser_parse_tag_value(uxml_parser_t *restrict ctx)
 			for (;!parser_match_exactly(ctx, "-->"); parser_char_next(ctx));
 		}
 
-		while (parser_skip_comment(ctx));
-		
-		c = parser_char_current(ctx);
+		if (ctx->opt_tag_value__trim) {
+			c = parser_skip_any_whitespace_or_comment(ctx);
+		} else {
+			while (parser_skip_comment(ctx));
+			c = parser_char_current(ctx);
+		}
+
 		if (c == '\0') return UXML_ERROR_EOF;
 
 		if (!comment_skip)

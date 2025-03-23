@@ -88,7 +88,8 @@ main()
 	ctx.tag_attribute_name_func = tag_attribute_name_cb;
 	ctx.tag_attribute_value_func = tag_attribute_value_cb;
 	ctx.data_func = data_cb_stream;
-
+	/* tell uxml to trim the tag values */
+	ctx.opt_tag_value__trim = 1;
 	/* load up a test xml file */
 	struct stream stream = {0};
 	stream.file = fopen("tree.xml", "r");

@@ -38,8 +38,15 @@
 	</branches>
 	<roots>
 		<root id="1">
-			<depth>2</depth> <!-- Depth in meters -->
-			<width>1.5</width> <!-- Width in meters -->
+			<depth> 
+				<!-- Depth in meters -->
+				2
+
+			</depth>
+			<!-- Width in meters -->
+			<width>
+				1.5
+			</width>
 		</root>
 	</roots>
 </tree>

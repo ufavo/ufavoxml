@@ -79,6 +79,10 @@ typedef struct uxml_parser {
 	
 	uint_fast8_t 	encoding;
 
+	/* trim and remove duplicated whitespaces from tag values
+	 * (control chars are considered whitespace) */
+	uint_fast8_t 	opt_tag_value__trim;
+
 	/* input data ptr */
 	const char 		*data;
 	size_t 			length;
