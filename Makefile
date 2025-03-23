@@ -4,7 +4,7 @@ DESTDIR?=
 PREFIX = /usr/local
 #LDFLAGS += 
 CFLAGS?=-O3 
-CFLAGS += -std=c99 -pedantic -Wall -Wextra -fPIC -Iutf8-utf16-converter/converter/include
+CFLAGS += -std=c99 -pedantic -Wall -Wextra -Wrestrict -fPIC -Iutf8-utf16-converter/converter/include
 CC?=gcc
 
 SRC = src/parser.c src/parser_utf16be.c src/parser_utf16le.c src/parser_utf8.c utf8-utf16-converter/converter/src/converter.c
