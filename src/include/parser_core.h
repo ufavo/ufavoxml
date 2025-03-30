@@ -331,6 +331,9 @@ parser_parse_tag_value(uxml_parser_t *restrict ctx)
 
 	if (ctx->opt_tag_value__trim) {
 		c = parser_skip_any_whitespace_or_comment(ctx);
+		if (c == '<')
+			if (parser_match_exactly(ctx, "/"))
+				return PARSER_IS_CLOSE_TAG;
 	} else {
 		while (parser_skip_comment(ctx));
 		c = parser_char_current(ctx);
